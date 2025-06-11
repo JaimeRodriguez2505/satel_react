@@ -13,16 +13,32 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
+  const checkAuth = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
 
-    if (token && storedUser) {
-      setUser(JSON.parse(storedUser));
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      if (token && storedUser) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        setUser(JSON.parse(storedUser));
+        
+        // Verificar si el token es válido
+        await api.get('/auth/verify');
+      }
+    } catch (error) {
+      console.error('Error de autenticación:', error);
+      // Si hay error, limpiar la sesión
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      delete api.defaults.headers.common['Authorization'];
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    setLoading(false);
+  useEffect(() => {
+    checkAuth();
   }, []);
 
   const login = async (email, password) => {

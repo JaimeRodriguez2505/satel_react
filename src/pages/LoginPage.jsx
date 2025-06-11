@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -10,24 +10,23 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const { login } = useAuth();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await api.post('/auth/login', {
-        email,
-        password
-      });
-
-      // Guardar el token en localStorage
-      localStorage.setItem('token', response.data.accessToken);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-
-      toast.success('Inicio de sesión exitoso');
-      navigate('/dashboard');
+      const result = await login(email, password);
+      
+      if (result.success) {
+        toast.success('Inicio de sesión exitoso');
+        navigate('/dashboard');
+      } else {
+        toast.error(result.error);
+      }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error al iniciar sesión');
+      toast.error('Error al iniciar sesión');
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Suspense } from 'react';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
@@ -13,58 +14,96 @@ import DashboardPage from './pages/DashboardPage';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
+import { LoadingSpinner } from './components/LoadingSpinner';
 import { Toaster } from 'react-hot-toast';
 import './App.css';
 
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <CartProvider>
-          <div className="flex flex-col min-h-screen bg-black">
-            <Header />
-            <main className="flex-grow" style={{ marginTop: "10px", backgroundColor: "black" }}>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/catalogo" element={<CatalogPage />} />
-                <Route path="/nosotros" element={<AboutPage />} />
-                <Route path="/contacto" element={<ContactPage />} />
-                <Route path="/servicios" element={<ServicesPage />} />
-                <Route path="/carrito" element={<CartPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
+      <ErrorBoundary>
+        <AuthProvider>
+          <CartProvider>
+            <div className="flex flex-col min-h-screen bg-black">
+              <Header />
+              <main className="flex-grow" style={{ marginTop: "10px", backgroundColor: "black" }}>
+                <Routes>
+                <Route path="/" element={
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <HomePage />
+                  </Suspense>
+                } />
+                <Route path="/catalogo" element={
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <CatalogPage />
+                  </Suspense>
+                } />
+                <Route path="/nosotros" element={
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <AboutPage />
+                  </Suspense>
+                } />
+                <Route path="/contacto" element={
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <ContactPage />
+                  </Suspense>
+                } />
+                <Route path="/servicios" element={
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <ServicesPage />
+                  </Suspense>
+                } />
+                <Route path="/carrito" element={
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <CartPage />
+                  </Suspense>
+                } />
+                <Route path="/login" element={
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <LoginPage />
+                  </Suspense>
+                } />
+                <Route path="/register" element={
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <RegisterPage />
+                  </Suspense>
+                } />
                 <Route 
                   path="/dashboard" 
                   element={
                     <ProtectedRoute>
-                      <DashboardPage />
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <DashboardPage />
+                      </Suspense>
                     </ProtectedRoute>
                   } 
                 />
               </Routes>
             </main>
             <Footer />
-            <Toaster
-              position="top-center"
-              reverseOrder={false}
-              toastOptions={{
-                style: {
-                  background: '#333',
-                  color: '#fff',
-                  borderRadius: '8px',
-                  border: '1px solid #22c55e',
-                },
-                success: {
-                  iconTheme: {
-                    primary: '#22c55e',
-                    secondary: '#fff',
-                  },
-                },
-              }}
-            />
           </div>
+          <Toaster
+            position="top-center"
+            reverseOrder={false}
+            toastOptions={{
+              style: {
+                background: '#333',
+                color: '#fff',
+                borderRadius: '8px',
+                border: '1px solid #22c55e',
+              },
+              success: {
+                iconTheme: {
+                  primary: '#22c55e',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
         </CartProvider>
       </AuthProvider>
+      </ErrorBoundary>
     </Router>
   );
 }
