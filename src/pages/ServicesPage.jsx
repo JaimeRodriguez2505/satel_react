@@ -1,188 +1,337 @@
-import React from 'react';
+import React, { useState } from "react";
+import { LazyMotion, domAnimation, m, MotionConfig } from "framer-motion";
+import { useInView } from "react-intersection-observer";
+import '../styles/ServicesPage.css';
+import { categories, serviceProcess } from '../data/servicesPageData';
 
-export default function ServicesPage() {
-  const services = [
-    {
-      id: 1,
-      title: "Reparación de Pantallas",
-      description: "Reemplazo profesional de pantallas para iPhones, iPads y MacBooks. Utilizamos solo componentes de la más alta calidad para garantizar una visualización perfecta.",
-      icon: (
-        <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
-      ),
-      price: "Desde 49€"
-    },
-    {
-      id: 2,
-      title: "Reparación de Batería",
-      description: "Reemplazo de baterías agotadas o defectuosas. Restauramos la vida útil de tu dispositivo con baterías certificadas y garantizadas.",
-      icon: (
-        <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-      ),
-      price: "Desde 39€"
-    },
-    {
-      id: 3,
-      title: "Reparación de Placa Base",
-      description: "Diagnóstico y reparación de problemas a nivel de componente en placas base. Recuperación de dispositivos con daños por agua o cortocircuitos.",
-      icon: (
-        <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      ),
-      price: "Desde 89€"
-    },
-    {
-      id: 4,
-      title: "Recuperación de Datos",
-      description: "Recuperación de datos importantes de dispositivos dañados o bloqueados. Aseguramos la confidencialidad y seguridad de tu información.",
-      icon: (
-        <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-        </svg>
-      ),
-      price: "Desde 69€"
-    }
-  ];
+/* ------------------ Animación reutilizable ------------------ */
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+};
 
-  const serviceProcess = [
-    {
-      id: 1,
-      title: "Diagnóstico Gratuito",
-      description: "Evaluamos tu dispositivo y te proporcionamos un presupuesto detallado sin compromiso.",
-      icon: (
-        <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-        </svg>
-      )
-    },
-    {
-      id: 2,
-      title: "Reparación Profesional",
-      description: "Nuestros técnicos certificados realizan la reparación con componentes de alta calidad.",
-      icon: (
-        <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-        </svg>
-      )
-    },
-    {
-      id: 3,
-      title: "Pruebas de Calidad",
-      description: "Realizamos pruebas exhaustivas para garantizar que todo funcione perfectamente.",
-      icon: (
-        <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      )
-    },
-    {
-      id: 4,
-      title: "Garantía Asegurada",
-      description: "Todos nuestros servicios incluyen garantía para tu tranquilidad.",
-      icon: (
-        <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-        </svg>
-      )
-    }
-  ];
+const scaleUp = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { opacity: 1, scale: 1 }
+};
+
+const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 }
+};
+
+// Componente de Tarjeta de Servicio
+const ServiceCard = ({ service }) => {
+  const { ref, inView } = useInView({ triggerOnce: true });
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-24">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Nuestros Servicios
-            </h1>
-            <p className="text-xl md:text-2xl mb-8">
-              Soluciones profesionales para todos tus dispositivos Apple. Calidad y garantía en cada reparación.
-            </p>
-          </div>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white"></div>
+    <m.div
+      ref={ref}
+      variants={fadeInUp}
+      initial="hidden"
+      animate={inView ? "visible" : "hidden"}
+      whileHover={{ y: -10 }}
+      className="service-card bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col overflow-hidden"
+    >
+      <div className="relative h-48 sm:h-56 w-full overflow-hidden">
+        <img
+          src={service.image}
+          alt={service.title}
+          loading="lazy"
+          decoding="async"
+          className="service-image w-full h-full object-cover transform transition-transform duration-700 hover:scale-110"
+        />
       </div>
 
-      {/* Services Grid */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Servicios Profesionales
-            </h2>
-            <p className="text-xl text-gray-600">
-              Soluciones expertas para todos tus dispositivos Apple
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {services.map((service) => (
-              <div key={service.id} className="bg-white rounded-xl shadow-lg p-8 transform transition-all duration-300 hover:scale-105">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    {service.icon}
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{service.title}</h3>
-                    <p className="text-gray-600 mb-4">{service.description}</p>
-                    <p className="text-blue-600 font-semibold">{service.price}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Service Process */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Nuestro Proceso
-            </h2>
-            <p className="text-xl text-gray-600">
-              Cómo trabajamos para garantizar la mejor calidad
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {serviceProcess.map((step) => (
-              <div key={step.id} className="text-center">
-                <div className="flex justify-center mb-6">
-                  {step.icon}
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">{step.title}</h3>
-                <p className="text-gray-600">{step.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-blue-600">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-8">
-            ¿Necesitas una reparación?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8">
-            Contacta con nosotros para un diagnóstico gratuito
-          </p>
-          <a
-            href="/contact"
-            className="inline-block bg-white text-blue-600 py-3 px-8 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-300"
+      <div className="p-4 sm:p-8 flex flex-col flex-1">
+        <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">{service.title}</h3>
+        <span className="block text-green-600 font-semibold mb-2 sm:mb-4 text-sm sm:text-base">{service.tagline}</span>
+        <p className="text-gray-600 whitespace-pre-line flex-1 text-sm sm:text-base">{service.description}</p>
+        <div className="mt-4 sm:mt-6">
+          <m.a
+            href={`https://wa.me/51951828282?text=Hola, me interesa el servicio de ${service.title}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center justify-center gap-2 bg-[#25D366] text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold hover:bg-[#128C7E] transition-colors duration-300 text-sm sm:text-base"
           >
-            Contactar ahora
-          </a>
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+            </svg>
+            Consultar por WhatsApp
+          </m.a>
         </div>
-      </section>
+      </div>
+    </m.div>
+  );
+};
+
+// Componente de Paso del Proceso
+const ProcessStep = ({ step }) => {
+  const { ref, inView } = useInView({ triggerOnce: true });
+  const IconComponent = step.icon;
+
+  return (
+    <m.div
+      ref={ref}
+      variants={fadeInUp}
+      initial="hidden"
+      animate={inView ? "visible" : "hidden"}
+      className="process-step bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 text-center"
+    >
+      <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mb-6 mx-auto">
+        <IconComponent />
+      </div>
+      <h3 className="text-xl font-bold text-gray-800 mb-4">{step.title}</h3>
+      <p className="text-gray-600">{step.description}</p>
+    </m.div>
+  );
+};
+
+// Componente de Botones Flotantes
+const FloatingButtons = () => {
+  const phoneNumber = "51951828282";
+  const whatsappNumber = "51951828282";
+
+  return (
+    <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 flex flex-col gap-3 sm:gap-4 z-50">
+      <m.a
+        href={`tel:${phoneNumber}`}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        className="w-12 h-12 sm:w-14 sm:h-14 bg-green-600 rounded-full flex items-center justify-center shadow-lg hover:bg-green-700 transition-colors duration-300"
+      >
+        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+        </svg>
+      </m.a>
+      <m.a
+        href={`https://wa.me/${whatsappNumber}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        className="w-12 h-12 sm:w-14 sm:h-14 bg-[#25D366] rounded-full flex items-center justify-center shadow-lg hover:bg-[#128C7E] transition-colors duration-300"
+      >
+        <svg className="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+      </m.a>
     </div>
+  );
+};
+
+// Componente Principal
+export default function ServicesPage() {
+  const [activeCategory, setActiveCategory] = useState("movil");
+  const current = categories.find((c) => c.id === activeCategory);
+
+  return (
+    <LazyMotion features={domAnimation}>
+      <MotionConfig transition={{ duration: 0.45, ease: "easeOut", staggerChildren: 0.1 }}>
+        <div className="min-h-screen w-full bg-gradient-to-b from-gray-100 to-white pt-20">
+          
+          {/* ---------------- Hero Section ---------------- */}
+          <section className="relative w-full h-[45vh] sm:h-[50vh] mb-8 overflow-hidden">
+            <m.div
+              className="absolute inset-0 bg-cover bg-center hero-image"
+              initial="hidden"
+              animate="visible"
+              variants={fadeIn}
+              style={{ backgroundImage: `url(${current.heroImage})`, filter: "brightness(0.7)" }}
+            >
+              <img
+                src={current.heroImage}
+                alt=""
+                className="hidden"
+                loading="lazy"
+                decoding="async"
+              />
+            </m.div>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60" />
+            
+            <div className="relative h-full flex flex-col items-center justify-center text-white px-4 text-center">
+              <m.h1
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="text-3xl sm:text-5xl md:text-7xl font-bold mb-2 sm:mb-4 bg-clip-text text-transparent bg-gradient-to-r from-green-400 via-emerald-500 to-green-600"
+              >
+                {current.label}
+              </m.h1>
+              <m.p
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="text-lg sm:text-xl md:text-2xl"
+              >
+                {current.available}
+              </m.p>
+            </div>
+          </section>
+          {/* ------------------------------------------------- */}
+
+          {/* ------------- Selector de Categorías ------------ */}
+          <section className="px-4 mb-12">
+            <div className="max-w-screen-xl mx-auto">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+                {categories.map((cat) => (
+                  <m.button
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`flex flex-col items-center justify-center p-4 rounded-2xl font-medium shadow-xl transition-all duration-300 min-h-[140px] ${
+                      activeCategory === cat.id
+                        ? "bg-white text-green-600 shadow-green-500/20 scale-[1.02]"
+                        : "bg-black/40 text-white hover:bg-black/50 backdrop-blur-md"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-1 sm:mb-2 ${
+                        activeCategory === cat.id ? "bg-green-100" : "bg-white/10"
+                      }`}
+                    >
+                      {cat.id === 'movil' && (
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14zm-4.2-5.78v1.75l3.2-2.99L12.8 9v1.7c-3.11.43-4.35 2.56-4.8 4.7 1.11-1.5 2.58-2.18 4.8-2.18z"/>
+                        </svg>
+                      )}
+                      {cat.id === 'tablet' && (
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M19 1H5c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H5V5h14v14z"/>
+                        </svg>
+                      )}
+                      {cat.id === 'laptop' && (
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2H0c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2h-4zM4 5h16v11H4V5zm8 14c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
+                        </svg>
+                      )}
+                      {cat.id === 'watch' && (
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M20 12c0-2.54-1.19-4.81-3.04-6.27L16 0H8l-.95 5.73C5.19 7.19 4 9.45 4 12s1.19 4.81 3.05 6.27L8 24h8l.96-5.73C18.81 16.81 20 14.54 20 12zM6 12c0-3.31 2.69-6 6-6s6 2.69 6 6-2.69 6-6 6-6-2.69-6-6z"/>
+                        </svg>
+                      )}
+                      {cat.id === 'desktop' && (
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h6v2H7v2h10v-2h-2v-2h6c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM3 17V5h18v12H3z"/>
+                        </svg>
+                      )}
+                      {cat.id === 'cargador' && (
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M13 5V2H11v3H8l4 8v7h2v-7l4-8h-3z"/>
+                        </svg>
+                      )}
+                    </div>
+                    <span className="text-center font-medium text-sm sm:text-base">{cat.label}</span>
+                    <span className="text-center text-xs text-white/80 mt-2">
+                      {cat.id === 'movil' && 'Desde iPhone 7'}
+                      {cat.id === 'tablet' && 'iPad y iPad Pro'}
+                      {cat.id === 'laptop' && 'MacBook Air y Pro'}
+                      {cat.id === 'watch' && 'Desde Series 3'}
+                      {cat.id === 'desktop' && 'iMac y Mac mini'}
+                      {cat.id === 'cargador' && 'Originales Apple'}
+                    </span>
+                  </m.button>
+                ))}
+              </div>
+            </div>
+          </section>
+          {/* ----------------------------------------------------- */}
+
+          {/* ---------------- LISTA DE SERVICIOS ---------------- */}
+          <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <m.h2
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="text-4xl md:text-5xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-green-400 via-emerald-500 to-green-600"
+            >
+              Descubre Nuestros Servicios
+            </m.h2>
+
+            <m.div
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            >
+              {current.services.map((service) => (
+                <ServiceCard key={service.id} service={service} />
+              ))}
+            </m.div>
+          </section>
+
+          {/* ----------------------- PROCESO ----------------------- */}
+          <section className="bg-gradient-to-b from-white to-gray-50 py-20">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+              <m.h2
+                variants={fadeInUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                className="text-4xl md:text-5xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-green-400 via-emerald-500 to-green-600"
+              >
+                Nuestro Proceso
+              </m.h2>
+
+              <m.div
+                variants={fadeInUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+              >
+                {serviceProcess.map((step) => (
+                  <ProcessStep key={step.id} step={step} />
+                ))}
+              </m.div>
+            </div>
+          </section>
+
+          {/* ---------------------- CTA FINAL ---------------------- */}
+          <section className="py-12 sm:py-20 bg-gradient-to-r from-green-500 to-emerald-600 relative overflow-hidden">
+            <m.div
+              variants={scaleUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10"
+            >
+              <div className="text-center text-white">
+                <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6">
+                  ¿Listo para reparar tu dispositivo?
+                </h2>
+                <p className="text-base sm:text-xl mb-6 sm:mb-8 opacity-90">
+                  Contacta con nosotros ahora y obtén un diagnóstico gratuito
+                </p>
+                <m.a
+                  href="https://wa.me/51951828282"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white text-green-600 rounded-lg font-bold text-base sm:text-lg hover:bg-gray-100 transition-colors duration-300 shadow-lg"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                  </svg>
+                  Contactar Ahora
+                </m.a>
+              </div>
+            </m.div>
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-white to-transparent" />
+            </div>
+          </section>
+
+          {/* ---------------- Botones Flotantes ---------------- */}
+          <FloatingButtons />
+        </div>
+      </MotionConfig>
+    </LazyMotion>
   );
 }

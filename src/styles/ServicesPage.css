@@ -1,0 +1,12 @@
+.service-card, .process-step {
+  content-visibility: auto;
+}
+
+.service-image {
+  will-change: transform;
+}
+
+.hero-image {
+  will-change: transform;
+  transform-origin: center;
+}
