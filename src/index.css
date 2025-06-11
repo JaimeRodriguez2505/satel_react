@@ -8,8 +8,8 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: #213547;
+  background-color: #ffffff;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -58,6 +58,19 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: rgba(255, 255, 255, 0.87);
+    background-color: #242424;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #1a1a1a;
+  }
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -91,4 +104,18 @@ button:focus-visible {
 
 .th-style {
   @apply py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+}
+
+.btn-icon {
+  @apply bg-gray-200 text-gray-600 rounded-full w-6 h-6 flex items-center justify-center hover:bg-gray-300 transition-colors;
+}
+
+/* Añade esto al final de tu archivo CSS principal */
+
+.input-stock {
+  @apply w-12 text-center bg-transparent font-bold text-lg text-gray-700 border-x-0 border-y-2 border-transparent focus:outline-none focus:ring-0 focus:border-blue-500 transition;
+}
+
+.btn-icon-round {
+  @apply bg-gray-200 text-gray-600 rounded-md w-7 h-7 flex items-center justify-center hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
 }

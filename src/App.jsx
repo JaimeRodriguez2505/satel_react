@@ -25,9 +25,9 @@ function App() {
       <ErrorBoundary>
         <AuthProvider>
           <CartProvider>
-            <div className="flex flex-col min-h-screen bg-black">
+            <div className="flex flex-col min-h-screen bg-white">
               <Header />
-              <main className="flex-grow" style={{ marginTop: "10px", backgroundColor: "black" }}>
+              <main className="flex-grow" style={{ marginTop: "10px", backgroundColor: "white" }}>
                 <Routes>
                 <Route path="/" element={
                   <Suspense fallback={<LoadingSpinner />}>
